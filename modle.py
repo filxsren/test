@@ -29,7 +29,7 @@ class Net(nn.Module):
 
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(13, 16)
+        self.fc1 = nn.Linear(7, 16)
         self.fc2 = nn.Linear(16, 16)
         self.fc3 = nn.Linear(32, 16)
         self.fc4 = nn.Linear(16, 1)
@@ -50,10 +50,10 @@ def train(mode):
             net.load_state_dict(torch.load("save.pt"))
             net.eval()
             print("load_state")
-            n=40
+            n=10
         except:
             print("no save.pt")
-            n=140
+            n=40
     elif mode=="test":
         loader=test_loader
         n=2
@@ -62,29 +62,40 @@ def train(mode):
     
     losses = []    
     # for epoch in range(20):
-    for i in tqdm(range(n), desc="training"):
-        running_loss = 0.0
-        for i, data in enumerate(loader, 0):
+    if mode=="train":
+        for i in tqdm(range(n), desc="training"):
+            running_loss = 0.0
+            for j, data in enumerate(loader, 0):
+                inputs, labels = data
+                optimizer.zero_grad()
+                outputs = net(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+                # losses.append(loss.item())
+
+                running_loss += loss.item()
+
+                # print('[%d, %5d] loss: %.3f' % (epoch + 1, i+1, running_loss / 29))
+                # running_loss = 0.0
+            losses.append(running_loss/len(loader))
+        torch.save(net.state_dict(), 'save.pt')
+        print('Finished Training')
+        plt.plot(losses, label='Loss')
+        plt.title('Training Loss over iterations')
+        plt.xlabel('Iteration')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.show()
+
+    elif mode=="test":
+        correct=[]
+        for j, data in enumerate(loader, 0):
             inputs, labels = data
-            optimizer.zero_grad()
             outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            # losses.append(loss.item())
+            correct.append(outputs)
+        print(correct)
 
-            running_loss += loss.item()
-
-            # print('[%d, %5d] loss: %.3f' % (epoch + 1, i+1, running_loss / 29))
-            # running_loss = 0.0
-        losses.append(running_loss / 29)
-    torch.save(net.state_dict(), 'save.pt')
-    print('Finished Training')
-    plt.plot(losses, label='Loss')
-    plt.title('Training Loss over iterations')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.show()
 
 train("train")
+train("test")
