@@ -18,12 +18,12 @@ print(device)
 
 
 class CustomDataset_selfDefine(data.Dataset):
-    def __init__(self,path):
+    def __init__(self,path,mode):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # self.lable =  torch.tensor(np.array(get_Dataset(path=path),dtype=np.float32)[0,1],dtype=torch.float32,device=device)
         # self.data = torch.tensor(np.array(get_Dataset(path=path),dtype=np.float32)[1:],dtype=torch.float32,device=device)
-        data_get=get_Dataset(path=path)
-        self.lable =  torch.tensor(np.array(data_get,dtype=np.float32)[:,0],dtype=torch.float32,device=device)
+        data_get=get_Dataset(path=path,mode=mode)
+        self.lable =  torch.tensor(np.array(data_get,dtype=np.float32)[:,0],dtype=torch.long,device=device)
         self.data = torch.tensor(np.array(data_get,dtype=np.float32)[:,1:9],dtype=torch.float32,device=device)
         print(self.data.shape)
         print(self.lable.shape)
@@ -37,7 +37,7 @@ class CustomDataset_selfDefine(data.Dataset):
     def get_lable(self):
         return self.lable
 
-def get_Dataset(path,mode='train'):
+def get_Dataset(path,mode):
     # train_all=[]
     data_temp=pd.read_csv(path)
     # print(data_temp.info())
@@ -83,7 +83,7 @@ def get_Dataset(path,mode='train'):
         data_temp=data_temp.drop('Ticket',axis=1)
         data_temp=data_temp.drop('Cabin',axis=1)
         n=len(data_temp)
-        for i in tqdm(range(n), desc="process_data"):
+        for i in tqdm(range(n), desc="process_Test_data"):
         # print(data_temp.info())
         # for i in range(len(data_temp)):
             # print(i)

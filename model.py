@@ -20,10 +20,10 @@ print(device)
 
 
 
-test_data = CustomDataset_selfDefine("train.csv")
+test_data = CustomDataset_selfDefine("test.csv",mode="test")
 test_loader = DataLoader(dataset=test_data,batch_size=16,shuffle=True,drop_last=False)
-train_data = CustomDataset_selfDefine("train.csv")
-train_loader = DataLoader(dataset=test_data,batch_size=16,shuffle=True,drop_last=False)
+train_data = CustomDataset_selfDefine("train.csv",mode="train")
+train_loader = DataLoader(dataset=train_data,batch_size=16,shuffle=True,drop_last=False)
 
 class Net(nn.Module):
 
@@ -32,7 +32,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(7, 16)
         self.fc2 = nn.Linear(16, 16)
         self.fc3 = nn.Linear(32, 16)
-        self.fc4 = nn.Linear(16, 1)
+        self.fc4 = nn.Linear(16, 2)
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x1 = F.relu(self.fc2(x))
@@ -40,8 +40,11 @@ class Net(nn.Module):
         x = self.fc4(x)
         return x
 net = Net().to(device)    
-criterion = nn.MSELoss()
-optimizer = optim.Adam(net.parameters(), lr=0.01)
+# criterion = nn.MSELoss()
+# optimizer = optim.Adam(net.parameters(), lr=0.01)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.0005, momentum=0.7)
 
 def train(mode):
     if mode =="train":
@@ -53,7 +56,7 @@ def train(mode):
             n=10
         except:
             print("no save.pt")
-            n=40
+            n=240
     elif mode=="test":
         loader=test_loader
         n=2
@@ -72,7 +75,6 @@ def train(mode):
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-                # losses.append(loss.item())
 
                 running_loss += loss.item()
 
@@ -88,12 +90,14 @@ def train(mode):
         plt.legend()
         plt.show()
 
-    elif mode=="test":
+    if mode=="test":
         correct=[]
+        print("test")
         for j, data in enumerate(loader, 0):
             inputs, labels = data
             outputs = net(inputs)
-            correct.append(outputs)
+            print('outputs:',torch.max(outputs,1))
+            correct.append(torch.max(outputs,1))
         print(correct)
 
 
